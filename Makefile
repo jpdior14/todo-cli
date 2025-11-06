@@ -28,7 +28,7 @@ all: $(TARGET)
 # Linking rule
 $(TARGET): $(OBJS)
 	@echo "LD	==> $@"
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compilation rule (for objects in OBJDIR from SRCDIR)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
