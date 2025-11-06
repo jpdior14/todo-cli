@@ -34,7 +34,7 @@ $(TARGET): $(OBJS)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	@echo "CXX	==> $@"
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Clean rule
 clean:
