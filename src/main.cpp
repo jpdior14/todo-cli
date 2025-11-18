@@ -2,28 +2,75 @@
 #include <iostream>
 #include <vector>
 
-int main() {
+void print_usage(const std::string& prog_name) {
+	std::cerr << "Usage:\n";
+	std::cerr << "	" << prog_name << "  list\n";
+	std::cerr << "	" << prog_name << " add \"<task description>\"\n";
+	std::cerr << "	" << prog_name << " done <task_id>\n";
+}
+
+void list_tasks(const std::vector<todo::Task>& tasks) {
+	std::cout << "ID	STATUS	TASK\n";
+	std::cout << "--	------	----\n";
+	for (size_t i = 0; i < tasks.size(); i++) {
+		std::cout << (i + 1) << "	"
+				<< "[" << (tasks[i].is_done() ? "x" : " ") << "]"
+				<< tasks[i].get_description() << std::endl;
+	}
+}
+
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		print_usage(argv[0]);
+		return 1;
+	}
+
 	const std::string filename = "tasks.txt";
+	std::string command = argv[1];
+	auto tasks = todo::TaskManager::load_tasks(filename);
 
-	// --- PROOF OF SAVE ---
-	std::cout << "Creating initial tasks and saving to file...\n";
-	std::vector<todo::Task> my_tasks;
-	my_tasks.emplace_back("Task 1: Learn vectors"); // emplace_>
-	my_tasks.emplace_back("Task 2: Learn file I/O");
-	my_tasks[1].mark_as_done(); // Mark the second task as done
-
-	todo::TaskManager::save_tasks(filename, my_tasks);
-	std::cout << "Saved.\n\n";
-
-
-	// --- PROOF OF LOAD ---
-	std::cout << "Loading tasks from file...\n";
-	std::vector<todo::Task> loaded_tasks = todo::TaskManager::load_tasks(filename);
-
-	std::cout << "Loaded " << loaded_tasks.size() << " tasks:\n";
-	for (const auto& task : loaded_tasks) {
-		std::cout << "- [" << (task.is_done() ? "x" : " ") << "] "
-			<< task.get_description() << std::endl;
+	if (command == "list") {
+		list_tasks(tasks);
+	}
+	else if (command == "add") {
+		if (argc != 3) {
+			std::cerr << "ERROR: 'add' command requires a task description.\n";
+			print_usage(argv[0]);
+			return 1;
+		}
+		tasks.emplace_back(argv[2]);
+		todo::TaskManager::save_tasks(filename, tasks);
+		std::cout << "Task added.\n";
+		list_tasks(tasks);
+	}
+	else if (command == "done") {
+		if (argc != 3) {
+			std::cerr << "ERROR: 'done' command requires a task ID.\n";
+			print_usage(argv[0]);
+			return 1;
+		}
+		try {
+			size_t task_id = std::stoul(argv[2]);
+			if (task_id == 0 || task_id > tasks.size()) {
+				std::cerr << "ERROR: Invalid task ID.\n";
+				return 1;
+			}
+			tasks[task_id - 1].mark_as_done();
+			todo::TaskManager::save_tasks(filename, tasks);
+			std::cout << "Task " << task_id << " marked as done.\n";
+			list_tasks(tasks);
+		} catch (const std::invalid_argument& e) {
+			std::cerr << "ERROR: Invalid task ID. Please provide a number.\n";
+			return 1;
+		} catch (const std::out_of_range& e) {
+			std::cerr << "ERROR: Task ID is too large.\n";
+			return 1;
+		}
+	}
+	else {
+		std::cerr << "ERROR: Unknown command '" << command << "'.\n";
+		print_usage(argv[0]);
+		return 1;
 	}
 
 	return 0;
