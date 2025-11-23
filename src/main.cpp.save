@@ -1,0 +1,59 @@
+#include "todo/task_manager.hpp" // Include our new manager
+#include <iostream>
+#include <vector>
+
+void print_usage(const std::string& prog_name) {
+	std::cerr << "Usage:\n";
+	std::cerr << "	" << prog_name << "  list\n";
+	std::cerr << "	" << prog_name << " add \"<task description>\"\n";
+	std::cerr << "	" << prog_name << " done <task_id>\n";
+}
+
+void list_tasks(const std::vector<todo::Task>& tasks) {
+	std::cout << "ID	STATUS	TASK\n";
+	std::cout << "--	------	----\n";
+	for (size_t i = 0; i < tasks.size(); ++i) {
+		std::cout << (i + 1) << "	"
+			<< "[" << (tasks[i].is_done() ? "x" : " ") << "]"
+			<< tasks[i].get_description() << std::endl;
+	}
+}
+
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		print_usage(argv[0]);
+		return 1;
+	}
+
+	const std::string filename = "tasks.txt";
+	std::string command = argv[1];
+	auto tasks = todo::TaskManager::load_tasks(filename);
+
+	if (command == "list") {
+		list_tasks(tasks);
+	}
+	else if (command == "add") {
+		if (argc != 3) {
+			std::cerr << "ERROR: 'add' command requires a task description.\n";
+			print_usage(argv[0]);
+			return 1;
+		}
+		tasks.emplace_back(argv[2]);
+		todo::TaskManager::save_tasks(filename, tasks);
+		std::cout << "Task added.\n";
+		list_tasks(tasks);
+	}
+	else if (command == "done") {
+		if (argc != 3) {
+			std::cerr << "ERROR: 'done' command requires a task ID.\n";
+			print_usage(argv[0]);
+			return 1;
+		}
+		try {
+			size_t task_id = std::stoul(argv[2]);
+			if (task_id == 0 || task_id > tasks.size()) {
+				std::cerr << "ERROR: Invalid task ID.\n";
+				return 1;
+			}
+			tasks[task_id - 1] m	return 0;
+}
